@@ -29,6 +29,8 @@ Drishti is a voice companion that gives **turn-by-turn walking directions** to b
 
 Drishti uses a three-channel perception architecture where **Python decides WHEN Gemini speaks, not WHAT**.
 
+**[View Interactive Architecture Diagram →](docs/architecture.html)** *(open locally or on GitHub Pages)*
+
 ```
 Phone Camera (1 FPS) + Microphone + Sensors
     │
@@ -142,36 +144,79 @@ drishti/
 └── .env.example
 ```
 
-## Quick Start
+## Reproducible Testing — Step by Step
+
+### Option A: Try the Live Demo (Easiest)
+
+1. **Open on your phone**: Visit [https://drishti-whn43ovjpq-uc.a.run.app](https://drishti-whn43ovjpq-uc.a.run.app) on your phone's browser (Chrome on Android or Safari on iOS)
+2. **Grant permissions**: Tap "Allow" for camera, microphone, and motion sensors when prompted
+3. **Select mode**: Choose "Blind Navigation" from the mode selector (default)
+4. **Tap Start**: The camera feed appears full-screen with a brain dashboard below
+5. **Walk around**: Point your phone camera forward as if you're walking. Hold it at chest height, rear camera facing ahead
+6. **Listen**: Drishti will speak turn-by-turn directions through your phone speaker:
+   - "Continue straight" when path is clear
+   - "Turn left in 2 steps" at corridors
+   - "Stop! Chair ahead" for obstacles
+   - Silence means the path is safe — this is intentional
+7. **Ask questions**: Speak naturally — "What's in front of me?" or "Where are the stairs?" — Drishti responds conversationally
+8. **Watch the brain panel**: Scroll down to see real-time system intelligence (environment type, urgency bars, path status, temporal validation)
+
+**Best test scenarios:**
+- Walk through a hallway with turns
+- Approach furniture or obstacles
+- Walk up/down stairs
+- Walk toward a person
+
+> **Note**: Use headphones/earbuds for the best experience — the phone speaker works but earbuds prevent echo from the microphone picking up Drishti's voice.
+
+### Option B: Run Locally
 
 ```bash
-# Clone
-git clone https://github.com/vikasjoel/dristi.git
-cd dristi
+# 1. Clone
+git clone https://github.com/vikasjoel/drishti.git
+cd drishti
 
-# Install
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# Configure
+# 3. Configure API keys
 cp .env.example .env
-# Edit .env: add GOOGLE_API_KEY and GOOGLE_CLOUD_PROJECT
+# Edit .env and add:
+#   GOOGLE_API_KEY=your_gemini_api_key (paid tier recommended)
+#   GOOGLE_CLOUD_PROJECT=your_gcp_project_id
 
-# Run locally
+# 4. Set up Cloud Vision credentials (for object detection)
+#   Download a GCP service account JSON with Vision API enabled
+#   Set: GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
+
+# 5. Run the server
 uvicorn backend.main:app --host 0.0.0.0 --port 8080
 
-# Open on phone (same network)
-# Go to http://<your-ip>:8080
-# Allow camera + microphone + sensors
-# Select mode → Start
+# 6. Open on your phone (must be on the same WiFi network)
+#   Find your computer's local IP: ifconfig | grep inet
+#   On phone browser, go to: http://<your-computer-ip>:8080
+#   IMPORTANT: Camera/mic require HTTPS in production,
+#   but localhost/local-IP works over HTTP for testing
 ```
 
-### Deploy to Cloud Run
+### Option C: Deploy to Cloud Run
 
 ```bash
 # Set environment variables in deploy.sh, then:
 chmod +x deploy.sh
 ./deploy.sh
 ```
+
+### What to Expect During Testing
+
+| Time | What Happens |
+|------|-------------|
+| 0-3s | Connection establishes, camera feed appears |
+| 3-5s | First cognitive analysis runs, Drishti greets you |
+| 5-10s | Environment detected (room, corridor, stairs), first navigation direction |
+| Ongoing | Directions every 3-6s when scene changes; silence when path is safe |
+| On obstacle | "Stop! [object] ahead" with avoidance directions |
+| On question | Natural voice response about the scene |
 
 ## Environment Variables
 

@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drishti Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a14;
+    color: #e0e0f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  h1 span {
+    font-weight: 700;
+    background: linear-gradient(135deg, #6c63ff, #14b8a6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    color: #6a6a80;
+    font-size: 13px;
+    letter-spacing: 3px;
+    margin-bottom: 40px;
+  }
+
+  .diagram {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ── Phone node ── */
+  .phone-node {
+    background: linear-gradient(135deg, #1e1e30, #16162a);
+    border: 1px solid rgba(108, 99, 255, 0.3);
+    border-radius: 16px;
+    padding: 20px 32px;
+    text-align: center;
+    position: relative;
+    width: 340px;
+  }
+  .phone-node .title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #a8a0ff;
+    margin-bottom: 8px;
+  }
+  .phone-node .chips {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .chip {
+    background: rgba(108, 99, 255, 0.12);
+    border: 1px solid rgba(108, 99, 255, 0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #8b83ff;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Connector lines ── */
+  .connector {
+    width: 2px;
+    height: 32px;
+    background: linear-gradient(to bottom, rgba(108,99,255,0.4), rgba(108,99,255,0.15));
+    position: relative;
+  }
+  .connector::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: -4px;
+    width: 10px;
+    height: 10px;
+    border-left: 2px solid rgba(108,99,255,0.4);
+    border-bottom: 2px solid rgba(108,99,255,0.4);
+    transform: rotate(-45deg);
+  }
+  .connector-label {
+    color: #5a5a70;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 4px 0;
+  }
+
+  /* ── Backend box ── */
+  .backend-box {
+    background: linear-gradient(135deg, #111120, #0e0e1c);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+  }
+  .backend-box .box-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #6a6a80;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  /* ── Three channels ── */
+  .channels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .channel {
+    border-radius: 14px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .channel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .channel.cv {
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  .channel.cv::before { background: linear-gradient(90deg, #22c55e, #16a34a); }
+
+  .channel.cognitive {
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+  }
+  .channel.cognitive::before { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+
+  .channel.live {
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+  }
+  .channel.live::before { background: linear-gradient(90deg, #a855f7, #7c3aed); }
+
+  .channel .ch-num {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .channel.cv .ch-num { color: #22c55e; }
+  .channel.cognitive .ch-num { color: #3b82f6; }
+  .channel.live .ch-num { color: #a855f7; }
+
+  .channel .ch-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e0e0f0;
+    margin-bottom: 4px;
+  }
+  .channel .ch-api {
+    font-size: 11px;
+    color: #6a6a80;
+    margin-bottom: 10px;
+  }
+  .channel .ch-detail {
+    font-size: 12px;
+    color: #8a8aa0;
+    line-height: 1.6;
+  }
+  .channel .ch-detail strong {
+    color: #b0b0c0;
+  }
+  .channel .ch-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .channel.cv .ch-badge { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .channel.cognitive .ch-badge { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .channel.live .ch-badge { background: rgba(168,85,247,0.15); color: #a855f7; }
+
+  /* ── Flow arrows between channels and brain ── */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .flow-arrow .arrow-line {
+    width: 2px;
+    height: 16px;
+    background: rgba(255,255,255,0.1);
+  }
+  .flow-arrow .arrow-label {
+    font-size: 9px;
+    color: #4a4a60;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .flow-arrow .arrow-head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid rgba(255,255,255,0.15);
+  }
+
+  /* ── Brain box ── */
+  .brain-box {
+    background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(20,184,166,0.05));
+    border: 1px solid rgba(108, 99, 255, 0.25);
+    border-radius: 16px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .brain-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6c63ff, #14b8a6);
+  }
+  .brain-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .brain-header .icon {
+    font-size: 22px;
+  }
+  .brain-header .brain-title {
+    font-size: 17px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a8a0ff, #14b8a6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brain-header .brain-sub {
+    font-size: 11px;
+    color: #6a6a80;
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  .brain-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .brain-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .brain-item .bi-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #5a5a70;
+    margin-bottom: 4px;
+  }
+  .brain-item .bi-value {
+    font-size: 12px;
+    color: #c0c0d0;
+    line-height: 1.5;
+  }
+  .brain-item .bi-value .highlight {
+    color: #a8a0ff;
+    font-weight: 600;
+  }
+
+  /* ── Output section ── */
+  .output-section {
+    margin-top: 20px;
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+  }
+  .output-card {
+    border-radius: 12px;
+    padding: 14px 20px;
+    text-align: center;
+    flex: 1;
+    max-width: 260px;
+  }
+  .output-card.speak {
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+  .output-card.silence {
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  .output-card .out-icon { font-size: 20px; margin-bottom: 4px; }
+  .output-card .out-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .output-card.speak .out-title { color: #a855f7; }
+  .output-card.silence .out-title { color: #22c55e; }
+  .output-card .out-desc {
+    font-size: 11px;
+    color: #6a6a80;
+  }
+
+  /* ── Bottom connector to user ── */
+  .user-node {
+    background: linear-gradient(135deg, #1e1e30, #16162a);
+    border: 1px solid rgba(20, 184, 166, 0.3);
+    border-radius: 16px;
+    padding: 16px 32px;
+    text-align: center;
+    width: 280px;
+  }
+  .user-node .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #14b8a6;
+    margin-bottom: 4px;
+  }
+  .user-node .desc {
+    font-size: 11px;
+    color: #6a6a80;
+  }
+
+  /* ── Priority table ── */
+  .priority-section {
+    width: 100%;
+    max-width: 900px;
+    margin-top: 40px;
+  }
+  .priority-section h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #8a8aa0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .priority-table {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr;
+    gap: 1px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .pt-cell {
+    padding: 10px 14px;
+    background: #111120;
+    font-size: 12px;
+  }
+  .pt-cell.header {
+    background: #16162a;
+    font-weight: 700;
+    color: #6a6a80;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .pt-cell .p-badge {
+    display: inline-block;
+    width: 32px;
+    text-align: center;
+    padding: 2px 0;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .p-critical { background: rgba(239,68,68,0.2); color: #ef4444; }
+  .p-high { background: rgba(245,158,11,0.2); color: #f59e0b; }
+  .p-medium { background: rgba(59,130,246,0.2); color: #3b82f6; }
+  .p-low { background: rgba(108,99,255,0.15); color: #8b83ff; }
+  .p-silent { background: rgba(34,197,94,0.12); color: #22c55e; }
+  .pt-cell .example { color: #6a6a80; font-style: italic; }
+
+  /* ── Temporal section ── */
+  .temporal-section {
+    width: 100%;
+    max-width: 900px;
+    margin-top: 40px;
+  }
+  .temporal-section h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #8a8aa0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .temporal-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .tf-step {
+    background: #16162a;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 150px;
+  }
+  .tf-step .tf-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: #5a5a70;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .tf-step .tf-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #c0c0d0;
+    margin-bottom: 4px;
+  }
+  .tf-step .tf-desc {
+    font-size: 11px;
+    color: #6a6a80;
+  }
+  .tf-arrow {
+    font-size: 18px;
+    color: #3a3a50;
+  }
+  .tf-step.stale { border-color: rgba(100,100,120,0.3); }
+  .tf-step.stale .tf-title { color: #6a6a80; }
+  .tf-step.imminent { border-color: rgba(239,68,68,0.3); }
+  .tf-step.imminent .tf-title { color: #ef4444; }
+  .tf-step.valid { border-color: rgba(34,197,94,0.3); }
+  .tf-step.valid .tf-title { color: #22c55e; }
+
+  @media (max-width: 700px) {
+    .channels { grid-template-columns: 1fr; }
+    .brain-grid { grid-template-columns: 1fr 1fr; }
+    .priority-table { grid-template-columns: 50px 1fr 1fr; }
+    .temporal-flow { flex-direction: column; }
+    .tf-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<h1><span>Drishti</span></h1>
+<div class="subtitle">SYSTEM ARCHITECTURE v4.2</div>
+
+<div class="diagram">
+
+  <!-- Phone -->
+  <div class="phone-node">
+    <div class="title">Phone (PWA)</div>
+    <div class="chips">
+      <div class="chip">Camera 1 FPS</div>
+      <div class="chip">Microphone</div>
+      <div class="chip">IMU Sensors</div>
+      <div class="chip">GPS</div>
+    </div>
+  </div>
+
+  <div class="connector"></div>
+  <div class="connector-label">WebSocket (JSON)</div>
+  <div class="connector"></div>
+
+  <!-- Backend -->
+  <div class="backend-box">
+    <div class="box-title">Python Backend &middot; FastAPI on Cloud Run</div>
+
+    <!-- Three Channels -->
+    <div class="channels">
+      <div class="channel cv">
+        <div class="ch-num">Channel 1</div>
+        <div class="ch-title">Cloud Vision API</div>
+        <div class="ch-api">Object Detection + OCR</div>
+        <div class="ch-detail">
+          <strong>Every 3rd frame</strong><br>
+          Bounding boxes, labels, text<br>
+          Vehicle emergency tripwire
+        </div>
+        <div class="ch-badge">~200ms latency</div>
+      </div>
+
+      <div class="channel cognitive">
+        <div class="ch-num">Channel 2</div>
+        <div class="ch-title">Gemini generateContent</div>
+        <div class="ch-api">Scene Analysis (gemini-2.5-flash)</div>
+        <div class="ch-detail">
+          <strong>Event-driven</strong><br>
+          Environment, path, objects<br>
+          Navigation actions, hazards
+        </div>
+        <div class="ch-badge">2-3s latency</div>
+      </div>
+
+      <div class="channel live">
+        <div class="ch-num">Channel 3</div>
+        <div class="ch-title">Gemini Live API</div>
+        <div class="ch-api">Voice I/O (native audio)</div>
+        <div class="ch-detail">
+          <strong>Continuous</strong><br>
+          Speaks alerts to user<br>
+          Hears questions, responds
+        </div>
+        <div class="ch-badge">Real-time</div>
+      </div>
+    </div>
+
+    <!-- Flow arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow">
+        <div class="arrow-label">objects</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+      <div class="flow-arrow">
+        <div class="arrow-label">scene json</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+      <div class="flow-arrow">
+        <div class="arrow-label">transcripts</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+    </div>
+
+    <!-- Brain -->
+    <div class="brain-box">
+      <div class="brain-header">
+        <div class="icon">🧠</div>
+        <div class="brain-title">World Model — The Brain</div>
+        <div class="brain-sub">Python decides WHEN Gemini speaks, not WHAT</div>
+      </div>
+
+      <div class="brain-grid">
+        <div class="brain-item">
+          <div class="bi-label">Absorbers</div>
+          <div class="bi-value">Sensors, CV results, cognitive JSON, speech transcripts</div>
+        </div>
+        <div class="brain-item">
+          <div class="bi-label">Temporal Validator</div>
+          <div class="bi-value">Frame stamp vs current sensors → <span class="highlight">stale / imminent / valid</span></div>
+        </div>
+        <div class="brain-item">
+          <div class="bi-label">Decision Engine</div>
+          <div class="bi-value"><span class="highlight">9-priority</span> nudge system (P1 emergency → P9 memory)</div>
+        </div>
+        <div class="brain-item">
+          <div class="bi-label">4 Dimensions</div>
+          <div class="bi-value">Vigilance, Urgency, Spatial Confidence, Verbosity</div>
+        </div>
+        <div class="brain-item">
+          <div class="bi-label">Goal System</div>
+          <div class="bi-value"><span class="highlight">Explicit</span> (user speech) + <span class="highlight">Implicit</span> (context-derived)</div>
+        </div>
+        <div class="brain-item">
+          <div class="bi-label">Cooldown + Dedup</div>
+          <div class="bi-value">Per-reason cooldown, hash dedup, verbosity gate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div class="output-section">
+      <div class="output-card speak">
+        <div class="out-icon">🔊</div>
+        <div class="out-title">NUDGE → Gemini Live speaks</div>
+        <div class="out-desc">"Turn left in 2 steps, stairs going down"</div>
+      </div>
+      <div class="output-card silence">
+        <div class="out-icon">🤫</div>
+        <div class="out-title">SILENCE (deliberate)</div>
+        <div class="out-desc">Path is safe — silence means safety</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"></div>
+  <div class="connector-label">Audio + Brain State</div>
+  <div class="connector"></div>
+
+  <!-- User -->
+  <div class="user-node">
+    <div class="title">Visually Impaired User</div>
+    <div class="desc">Hears voice directions &middot; Asks questions</div>
+  </div>
+
+</div>
+
+<!-- Priority Table -->
+<div class="priority-section">
+  <h2>9-Priority Nudge System</h2>
+  <div class="priority-table">
+    <div class="pt-cell header">Level</div>
+    <div class="pt-cell header">Trigger</div>
+    <div class="pt-cell header">Example</div>
+
+    <div class="pt-cell"><span class="p-badge p-critical">P1</span></div>
+    <div class="pt-cell">Vehicle emergency (CV)</div>
+    <div class="pt-cell"><span class="example">"Stop! Car ahead!"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-critical">P2</span></div>
+    <div class="pt-cell">Safety alert / imminent obstacle</div>
+    <div class="pt-cell"><span class="example">"Stop! Chair 1 step ahead!"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-high">P3</span></div>
+    <div class="pt-cell">Fast-approaching object</div>
+    <div class="pt-cell"><span class="example">"Person approaching, 10 o'clock"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-high">P4</span></div>
+    <div class="pt-cell">Environment transition</div>
+    <div class="pt-cell"><span class="example">"You've reached the stairs"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-medium">P5</span></div>
+    <div class="pt-cell">Goal match</div>
+    <div class="pt-cell"><span class="example">"Found the elevator — ahead right"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-medium">P6</span></div>
+    <div class="pt-cell">New obstacle / path blocked</div>
+    <div class="pt-cell"><span class="example">"Table about 3 steps ahead"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-low">P7</span></div>
+    <div class="pt-cell">Navigation action / orientation</div>
+    <div class="pt-cell"><span class="example">"Turn left in 2 steps"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-low">P8</span></div>
+    <div class="pt-cell">Proactive info</div>
+    <div class="pt-cell"><span class="example">"Path clear, hallway ahead"</span></div>
+
+    <div class="pt-cell"><span class="p-badge p-silent">P9</span></div>
+    <div class="pt-cell">Memory augment (silent)</div>
+    <div class="pt-cell"><span class="example">Context refresh for Gemini Live</span></div>
+  </div>
+</div>
+
+<!-- Temporal Validation -->
+<div class="temporal-section">
+  <h2>Temporal Validation (v4.2 Innovation)</h2>
+  <div class="temporal-flow">
+    <div class="tf-step">
+      <div class="tf-num">Step 1</div>
+      <div class="tf-title">Frame Captured</div>
+      <div class="tf-desc">Stamped with sensor snapshot<br>(heading, steps, speed)</div>
+    </div>
+    <div class="tf-arrow">→</div>
+    <div class="tf-step">
+      <div class="tf-num">Step 2</div>
+      <div class="tf-title">Perception Returns</div>
+      <div class="tf-desc">CV: 200ms later<br>Cognitive: 2-3s later</div>
+    </div>
+    <div class="tf-arrow">→</div>
+    <div class="tf-step">
+      <div class="tf-num">Step 3</div>
+      <div class="tf-title">Validate vs Current</div>
+      <div class="tf-desc">Compare snapshot heading/<br>steps to NOW</div>
+    </div>
+    <div class="tf-arrow">→</div>
+    <div class="tf-step stale">
+      <div class="tf-num">Result A</div>
+      <div class="tf-title">STALE → Drop</div>
+      <div class="tf-desc">User turned 62° or<br>walked past obstacle</div>
+    </div>
+  </div>
+  <div class="temporal-flow" style="margin-top: 12px;">
+    <div style="width: 150px;"></div>
+    <div style="width: 150px;"></div>
+    <div style="width: 150px;"></div>
+    <div class="tf-arrow" style="visibility: hidden;">→</div>
+    <div class="tf-step imminent">
+      <div class="tf-num">Result B</div>
+      <div class="tf-title">IMMINENT → Urgent</div>
+      <div class="tf-desc">Obstacle &lt;1.5m ahead<br>Bypass cooldown</div>
+    </div>
+  </div>
+  <div class="temporal-flow" style="margin-top: 12px;">
+    <div style="width: 150px;"></div>
+    <div style="width: 150px;"></div>
+    <div style="width: 150px;"></div>
+    <div class="tf-arrow" style="visibility: hidden;">→</div>
+    <div class="tf-step valid">
+      <div class="tf-num">Result C</div>
+      <div class="tf-title">VALID → Normal Alert</div>
+      <div class="tf-desc">Obstacle still ahead<br>at safe distance</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+.git
+.env
+__pycache__
+*.pyc
+logs/
+experiments/
+docs/
+*.md
+!requirements.txt
+.gcloudignore
+.dockerignore
+deploy.sh

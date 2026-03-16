@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Drishti</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0f;
+            --bg-panel: #12121a;
+            --bg-card: #1a1a25;
+            --text: #e8e8f0;
+            --text-dim: #7a7a8e;
+            --text-muted: #4a4a5e;
+            --accent: #6c63ff;
+            --green: #22c55e;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --blue: #3b82f6;
+            --teal: #14b8a6;
+            --border: rgba(255,255,255,0.06);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- START SCREEN --- */
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            gap: 24px;
+        }
+        #start-screen.hidden { display: none; }
+
+        #start-screen h1 {
+            font-size: 36px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+        }
+        #start-screen h1 span {
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #start-screen .subtitle {
+            color: var(--text-dim);
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        #plugin-select {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        #start-btn {
+            margin-top: 20px;
+            padding: 16px 48px;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: white;
+            background: linear-gradient(135deg, var(--accent), #4f46e5);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #start-btn:active { transform: scale(0.96); }
+        #start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        #start-status {
+            color: var(--text-dim);
+            font-size: 12px;
+            height: 16px;
+        }
+
+        /* --- CAMERA SECTION --- */
+        #camera-section {
+            flex: 1;
+            position: relative;
+            background: #000;
+            min-height: 0;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #canvas { display: none; }
+
+        /* Status pill: top left */
+        #status-pill {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        #status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        #status-dot.error { background: var(--red); animation: none; }
+        #status-dot.connecting { background: var(--amber); }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Environment badge: top center */
+        #env-badge {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(108, 99, 255, 0.2);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--accent);
+            text-transform: uppercase;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        /* Silent indicator: top right */
+        #silent-indicator {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--green);
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 2;
+        }
+        #silent-indicator.visible { opacity: 1; }
+
+        /* Speech overlay: bottom of camera */
+        #speech-overlay {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: white;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            z-index: 2;
+        }
+        #speech-overlay.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #speech-overlay .label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 4px;
+        }
+
+        /* --- BRAIN PANEL --- */
+        #brain-panel {
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            padding: 10px 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Dimension bars */
+        #dimensions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .dim-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .dim-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .dim-bar-track {
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .dim-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease-out, background 0.5s;
+            width: 0%;
+        }
+        .dim-value {
+            font-size: 18px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dim-card[data-dim="vigilance"] .dim-bar-fill { background: var(--amber); }
+        .dim-card[data-dim="urgency"] .dim-bar-fill { background: var(--red); }
+        .dim-card[data-dim="confidence"] .dim-bar-fill { background: var(--blue); }
+        .dim-card[data-dim="verbosity"] .dim-bar-fill { background: var(--teal); }
+        .dim-card[data-dim="vigilance"] .dim-value { color: var(--amber); }
+        .dim-card[data-dim="urgency"] .dim-value { color: var(--red); }
+        .dim-card[data-dim="confidence"] .dim-value { color: var(--blue); }
+        .dim-card[data-dim="verbosity"] .dim-value { color: var(--teal); }
+
+        /* Info row */
+        #info-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+        .info-card {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 8px 12px;
+        }
+        .info-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+        .info-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .info-value.path-clear { color: var(--green); }
+        .info-value.path-blocked { color: var(--red); }
+        .info-value.has-goal { color: var(--accent); }
+
+        /* Temporal validation row */
+        #temporal-row {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+        }
+        #temporal-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+        #temporal-dot.stale { background: var(--text-muted); }
+        #temporal-dot.imminent { background: var(--red); animation: pulse-dot 0.5s ease-in-out infinite; }
+        #temporal-dot.valid { background: var(--green); }
+        #temporal-dot.idle { background: var(--text-muted); opacity: 0.3; }
+        #temporal-text {
+            font-size: 12px;
+            color: var(--text-dim);
+            flex: 1;
+        }
+        #temporal-age {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Nudge flash effect */
+        @keyframes nudge-flash {
+            0% { box-shadow: inset 0 0 0 2px var(--accent); }
+            100% { box-shadow: inset 0 0 0 2px transparent; }
+        }
+        #brain-panel.nudge-fired {
+            animation: nudge-flash 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- START SCREEN -->
+    <div id="start-screen">
+        <h1><span>Drishti</span></h1>
+        <div class="subtitle">spatial intelligence</div>
+        <select id="plugin-select">
+            <option value="blind_navigation">Blind Navigation</option>
+            <option value="baby_monitor">Baby Monitor</option>
+            <option value="elderly_care">Elderly Care</option>
+            <option value="security">Security</option>
+        </select>
+        <button id="start-btn">Start</button>
+        <div id="start-status"></div>
+    </div>
+
+    <!-- MAIN UI (hidden until started) -->
+    <div id="camera-section" style="display:none;">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+
+        <div id="status-pill">
+            <div id="status-dot" class="connecting"></div>
+            <span id="status-text">Connecting</span>
+        </div>
+
+        <div id="env-badge">&mdash;</div>
+
+        <div id="silent-indicator">SAFE &mdash; PATH CLEAR</div>
+
+        <div id="speech-overlay">
+            <div class="label">Drishti says</div>
+            <div id="speech-text"></div>
+        </div>
+    </div>
+
+    <div id="brain-panel" style="display:none;">
+        <div id="dimensions">
+            <div class="dim-card" data-dim="vigilance">
+                <div class="dim-label">Alert</div>
+                <div class="dim-bar-track"><div class="dim-bar-fill" id="bar-vigilance"></div></div>
+                <div class="dim-value" id="val-vigilance">0.0</div>
+            </div>
+            <div class="dim-card" data-dim="urgency">
+                <div class="dim-label">Urgent</div>
+                <div class="dim-bar-track"><div class="dim-bar-fill" id="bar-urgency"></div></div>
+                <div class="dim-value" id="val-urgency">0.0</div>
+            </div>
+            <div class="dim-card" data-dim="confidence">
+                <div class="dim-label">Conf</div>
+                <div class="dim-bar-track"><div class="dim-bar-fill" id="bar-confidence"></div></div>
+                <div class="dim-value" id="val-confidence">0.0</div>
+            </div>
+            <div class="dim-card" data-dim="verbosity">
+                <div class="dim-label">Voice</div>
+                <div class="dim-bar-track"><div class="dim-bar-fill" id="bar-verbosity"></div></div>
+                <div class="dim-value" id="val-verbosity">0.0</div>
+            </div>
+        </div>
+
+        <div id="info-row">
+            <div class="info-card">
+                <div class="info-label">Path</div>
+                <div class="info-value path-clear" id="path-status">Clear</div>
+            </div>
+            <div class="info-card" style="flex: 2;">
+                <div class="info-label">Goal</div>
+                <div class="info-value" id="goal-status">&mdash;</div>
+            </div>
+        </div>
+
+        <div id="temporal-row">
+            <div id="temporal-dot" class="idle"></div>
+            <div id="temporal-text">Waiting for perception...</div>
+            <div id="temporal-age"></div>
+        </div>
+    </div>
+
+    <script src="/static/sensors.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

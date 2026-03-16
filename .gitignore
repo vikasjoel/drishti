@@ -1,0 +1,34 @@
+# Environment
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+logs/
+logs_*.txt
+
+# Experiment artifacts
+frame_v2_*.jpg
+test_frame_reference.jpg
+optic_nerve_results.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.egg-info/
+dist/
+build/

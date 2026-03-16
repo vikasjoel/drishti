@@ -18,7 +18,9 @@ from PIL import Image, ImageDraw
 from google import genai
 from google.genai import types
 
-API_KEY = os.environ.get("GOOGLE_API_KEY", "REDACTED_KEY")
+API_KEY = os.environ.get("GOOGLE_API_KEY")
+if not API_KEY:
+    raise ValueError("Set GOOGLE_API_KEY environment variable before running experiments")
 os.environ["GOOGLE_API_KEY"] = API_KEY
 
 client = genai.Client()
